@@ -1,11 +1,11 @@
-ARG VERSION=1.2.0
+ARG VERSION=1.4.1
 ARG UID=200014
 ARG GID=200014
 
 ARG RUSTC_VERSION=1.89.0
-ARG NODEJS_VERSION=20
-ARG OPA_VERSION=1.1.0
-ARG CARGO_AUDITABLE_VERSION=0.6.6
+ARG NODEJS_VERSION=22
+ARG OPA_VERSION=1.8.0
+ARG CARGO_AUDITABLE_VERSION=0.7.0
 
 
 FROM node:${NODEJS_VERSION}-alpine AS frontend
@@ -17,7 +17,7 @@ RUN apk -U upgrade \
 
 WORKDIR /app/frontend
 
-ADD https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package.json https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package-lock.json /app/frontend/
+ADD https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/.npmrc https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package.json https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package-lock.json /app/frontend/
 
 RUN npm ci
 

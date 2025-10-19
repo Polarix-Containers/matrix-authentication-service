@@ -1,4 +1,4 @@
-ARG VERSION=1.3.0-rc.0
+ARG VERSION=1.4.1
 ARG UID=200014
 ARG GID=200014
 
@@ -17,7 +17,7 @@ RUN apk -U upgrade \
 
 WORKDIR /app/frontend
 
-ADD https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package.json https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package-lock.json /app/frontend/
+ADD https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/.npmrc https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package.json https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package-lock.json /app/frontend/
 
 RUN npm ci
 
