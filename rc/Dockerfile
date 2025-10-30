@@ -103,10 +103,10 @@ RUN --network=none \
   && adduser -u ${UID} --ingroup mas --disabled-password --system mas
 
 COPY --from=builder /install /usr/local/bin/
-COPY --from=frontend /share /share
-COPY --from=policy /app/policies/policy.wasm /share/policy.wasm
-ADD https://github.com/element-hq/matrix-authentication-service.git#v${VERSION}:templates /share/templates
-ADD https://github.com/element-hq/matrix-authentication-service.git#v${VERSION}:translations /share/translations
+COPY --from=frontend /share /usr/local/share/mas-cli
+COPY --from=policy /app/policies/policy.wasm /usr/local/share/mas-cli/policy.wasm
+ADD https://github.com/element-hq/matrix-authentication-service.git#v${VERSION}:templates /usr/local/share/mas-cli/templates
+ADD https://github.com/element-hq/matrix-authentication-service.git#v${VERSION}:translations /usr/local/share/mas-cli/translations
 
 COPY --from=ghcr.io/polarix-containers/hardened_malloc:latest /install /usr/local/lib/
 ENV LD_PRELOAD="/usr/local/lib/libhardened_malloc.so"
