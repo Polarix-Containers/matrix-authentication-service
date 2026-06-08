@@ -13,8 +13,7 @@ FROM node:${NODEJS_VERSION}-alpine AS frontend
 ARG VERSION
 
 RUN apk -U upgrade \
-  && apk add build-base \
-  && npm update -g npm
+  && apk add build-base
 
 WORKDIR /app
 
