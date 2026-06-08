@@ -1,4 +1,4 @@
-ARG VERSION=1.17.0
+ARG VERSION=1.18.0
 ARG UID=200014
 ARG GID=200014
 
@@ -16,18 +16,25 @@ RUN apk -U upgrade \
   && apk add build-base \
   && npm update -g npm
 
-WORKDIR /app/frontend
+WORKDIR /app
 
-ADD https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/.npmrc https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package.json https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package-lock.json /app/frontend/
+RUN corepack enable
 
-RUN npm ci
+ADD https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/package.json https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/pnpm-workspace.yaml https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/pnpm-lock.yaml /app/
+ADD https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package.json /app/frontend/
+
+RUN pnpm install --frozen-lockfile
 
 ADD https://github.com/element-hq/matrix-authentication-service.git#v${VERSION}:frontend /app/frontend/
 ADD https://github.com/element-hq/matrix-authentication-service.git#v${VERSION}:templates /app/templates/
 
 RUN --network=none \
-  npm run build \
-  && mkdir -p /share/assets \
+  pnpm --filter mas-frontend run build
+
+WORKDIR /app/frontend
+
+RUN --network=none \
+  mkdir -p /share/assets \
   && cp ./dist/manifest.json /share/manifest.json \
   && rm -f ./dist/index.html* ./dist/manifest.json* \
   && cp ./dist/* /share/assets/
