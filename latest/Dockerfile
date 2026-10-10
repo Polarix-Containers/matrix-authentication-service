@@ -1,8 +1,8 @@
-ARG VERSION=1.24.0
+ARG VERSION=1.26.0
 ARG UID=200014
 ARG GID=200014
 
-ARG RUSTC_VERSION=1.96.0
+ARG RUSTUP_VERSION=1.29.0
 ARG NODEJS_VERSION=24
 ARG OPA_VERSION=1.13.1
 ARG CARGO_AUDITABLE_VERSION=0.7.2
@@ -22,7 +22,7 @@ RUN corepack enable
 ADD https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/package.json https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/pnpm-workspace.yaml https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/pnpm-lock.yaml /app/
 ADD https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/frontend/package.json /app/frontend/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --no-runtime
 
 ADD https://github.com/element-hq/matrix-authentication-service.git#v${VERSION}:frontend /app/frontend/
 ADD https://github.com/element-hq/matrix-authentication-service.git#v${VERSION}:templates /app/templates/
@@ -60,22 +60,37 @@ RUN --network=none make -B \
 
 # ======================================= #
 
-FROM rust:${RUSTC_VERSION}-alpine AS builder
+FROM alpine AS builder
 
 ARG VERSION
+ARG BUILDARCH
+ARG RUSTUP_VERSION
 ARG CARGO_AUDITABLE_VERSION
-ARG RUSTC_VERSION
 
+ENV RUSTUP_HOME=/usr/local/rustup
+ENV CARGO_HOME=/usr/local/cargo
+ENV PATH=/usr/local/cargo/bin:$PATH
 ENV VERGEN_GIT_DESCRIBE=${VERSION}
 
 RUN apk -U upgrade \
-  && apk add build-base
+  && apk add build-base curl
+
+RUN case "${BUILDARCH}" in \
+    amd64) RUSTUP_TRIPLE="x86_64-unknown-linux-musl" ;; \
+    arm64) RUSTUP_TRIPLE="aarch64-unknown-linux-musl" ;; \
+    *) echo "unsupported architecture: ${BUILDARCH}" >&2; exit 1 ;; \
+  esac \
+  && curl -fsSLo rustup-init "https://static.rust-lang.org/rustup/archive/${RUSTUP_VERSION}/${RUSTUP_TRIPLE}/rustup-init" \
+  && chmod +x rustup-init \
+  && ./rustup-init -y --no-modify-path --default-toolchain none \
+  && rm rustup-init
+
+WORKDIR /app
+ADD https://raw.githubusercontent.com/element-hq/matrix-authentication-service/refs/tags/v${VERSION}/rust-toolchain.toml ./
+RUN rustup toolchain install
 
 RUN cargo install --locked \
   cargo-auditable@=${CARGO_AUDITABLE_VERSION}
-
-# Set the working directory
-WORKDIR /app
 
 # Copy the code
 ADD https://github.com/element-hq/matrix-authentication-service.git#v${VERSION} /app
